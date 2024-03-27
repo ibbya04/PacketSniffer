@@ -1,9 +1,26 @@
 import socket
-import struct
-import textwrap
+from struct import *
+import sys
 
+def ethernet_head(raw_data):
+    # unpacks binary data. ! specifies big endian as network data is big endian.
+    # dest and source mac addresses are 6 bytes each, hence 6s. H specifies unsinged int, 2 bytes for source.
+    dest, src, prototype = struct.unpack('! 6s 6s H', raw_data[:14])
+
+    # get_mac_addr function converys MAC addresses into human readable format
+    dest_mac = get_mac_addr(dest)
+    src_mac = get_mac_addr(src)
+
+    # converts to big endian
+    proto = socket.htons(prototype)
+    # payload
+    data = raw_data[14:]
+    return dest_mac, src_mac, proto, data
+
+# creates a raw socket capable of capturing TCP packets at IP level.
 s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
 
+# infinite loop to recieve data from socket
 while True:
     print(s.recvfrom(65565))
     
