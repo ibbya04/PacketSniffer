@@ -5,7 +5,7 @@ import sys
 
 def main():
     # # creates a raw socket capable of capturing TCP packets at IP level.
-    s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
+    s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.ntohs(3))
 
     # infinite loop to recieve data from socket, then formats and prints data
     while True:
@@ -29,13 +29,29 @@ def ethernet_head(raw_data):
     data = raw_data[14:]
     return dest_mac, src_mac, proto, data
 
-# converts bytes into formatted MAC address
+# converts bytes into formatted MAC address e.g. 40:00:40:AB:C0:D0
 def get_mac_addr(bytes):
     # formats each byte without need for a loop
     bytes_str = map('{:02x}'.format, bytes)
     # joins bytes together wiht ':' inbetween and converts all to uppercase
     mac_address = ':'.join(bytes_str).upper()
     return mac_address
+
+# unpacks IPv4 packet which lies within ethernet frame payload.
+def ipv4_packet:
+    version_header = data[0]
+    # bit shift right to remove header length(last 4 bytes)
+    version = version_header >> 4
+    header_length = (version_header * 15) * 4
+    # extracts binary from payload/IP
+    ttl, proto, src, target = struct.unpack('! 8x B B 2x 4s 4s', [:20])
+    return version, header_length, ttl, proto, get_ipv4(src), get_ipv4(target), data[header_length:]
+
+# formats IPv4 address e.g. 168.0.0.1
+def get_ipv4(address):
+    ipv4_address = '.'.join(map(str, address))
+    return ipv4_address
+
 
 
 main()
