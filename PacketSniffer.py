@@ -3,9 +3,10 @@ import struct
 import sys
 
 
+
 def main():
     # # creates a raw socket capable of capturing TCP packets at IP level.
-    s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.ntohs(3))
+    s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
     # infinite loop to recieve data from socket, then formats and prints data
     while True:
@@ -52,6 +53,31 @@ def get_ipv4(address):
     ipv4_address = '.'.join(map(str, address))
     return ipv4_address
 
+def unpack_icmp_packet(data):
+    # unpack binary data according to ICMP packet diagram, 1st byte = icmp type
+    # 2nd byte = code, 3rd+4th byte = checksum 
+    icmp_type, code, checksum = struct unpack('! B B H', data[:4])
+    return icmp_type, code, checksum, data[4:]
+
+# unpakcs TCP packet if protocol = 
+def unpack_tcp_segment(data):
+    # unpacks binary data, first 4 bytes source & destination ports, ...
+    (src_port, dest_port, sequence, acknowledgement, offset_res_flags = struct.unpack('! H H L L H', data[:14]))
+    # unpacked 2 bytes which contain offset, reserved and flags together
+    # need to be split into 4 bits for offset, 4 bits for reserved, and 8 bits/1 byte for flags using bitwise ops.
+    offset = (offset_res_flags >> 12) * 4
+    flag_urg = (offset_res_flags & 32) >> 5
+    flag_ack = (offset_res_flags & 16) >> 4
+    flag_psh = (offset_res_flags & 8) >> 3
+    flag_rst = (offset_res_flags & 2) >> 2
+    flag_syn = (offset_res_flags & 2) >> 1
+    flag_fin = offset_res_flags & 1
+    return src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[offset:]
+
+# unpakcs udp segment
+def unpack_udp_segment(data):
+    src_port, dest_port, size = struct,unpack('! H H 2x H', data[:8])
+    return src_port, dest_port, size
 
 
 main()
