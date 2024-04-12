@@ -114,8 +114,7 @@ def unpack_tcp_segment(data):
 # unpacks UDP segment if protocol = 17
 def unpack_udp_segment(data):
     src_port, dest_port, size = struct.unpack('! H H 2x H', data[:8])
-    return src_port, dest_port, size
-
+    return src_port, dest_port, size, data[8:]
 
 main()
     
